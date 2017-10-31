@@ -16,7 +16,6 @@
 </head>
 <body>
 	<div class="container">
-		
 		<div id="loginArea" class="row">
 			<div class="col-md-12">
 				<form id="userForm">
@@ -29,8 +28,6 @@
 				</form>
 			</div>
 		</div>
-
-
 		<div id="messageArea" class="row">
 			<div class="col-md-4">
 				<div class="well">
@@ -39,7 +36,9 @@
 				</div>
 			</div>
 			<div class="col-md-8">
-				<div class="well"  id="chat"></div>
+				<div class="well"  >
+					<p id="chat"></p>
+				</div>
 				<form id="messageForm">
 					<div class="form-group">
 						<label>Enter Messsage</label>
@@ -49,14 +48,18 @@
 						<div class="form-group">
 					    <label for="inputFile">File input</label>
 					    <input type="file" id="inputFile" />
+					    <button type="button" class="btn btn-primary" value="sendFile" id="sendFile" >send File </button>
 					    <p class="help-block">Example block-level help text here.</p>
+					  	
 					  	</div>
-						<button type="submit" class="btn btn-primary" value="Game" >Game <span class="glyphicon glyphicon-dashboard"></span></button>
+						
 					</div>
 				</form>
 			</div>
 		</div> <!--end messagearea -->
 	</div> <!--end container -->
+
+
 	<script>
 		$(function(){
 			var socket = io.connect();
@@ -68,16 +71,41 @@
 			var $messageArea = $('#messageArea');
 			var $users = $('#users');
 			var $username = $('#username');
+			var $filename = $('#inputFile');
+			var mHtml = ['<p> You are the only Chatter in the chat must wait for other chatters to join </p>','<p>Chatter has left the chat </p>',':</b> has joined the chat </p>'];
+			
+			//$serverForm.submit(function(e){
+			//	e.preventDefault();
+			//	port = $startserver.val();
 
+			//});
 
+            
 			$messageForm.submit(function(e){
 				e.preventDefault();
 				socket.emit('send message', $message.val());
 				$message.val('');
+
 			});
 
+
+
+			$('#sendFile').click(function(){
+				var stream = socket.createStream();
+				console.log("I clicked the button and look what happened");
+
+				console.log("typeof stream: " + typeof(stream));
+				console.log(stream);
+				socket.Send('file', stream, {size: $filename.size});
+				
+				//ss.createBlobReadStream($filename).pip(stream);
+
+				
+			})
+
 			socket.on('new message', function(data){
-				$chat.append('<div class="well"><b>'+ data.user+ ':</b> ' + data.msg + '</div>');
+				console.log(data);
+				$chat.append('<p><b>'+ data.user+ ':</b> ' + data.msg + '</p>');
 			})
 
 			$userForm.submit(function(e){
@@ -97,8 +125,42 @@
 					html += '<li class="list-group-item">' + data[i] +'</li>';
 				}
 				$users.html(html);
+				console.log(typeof(data) +" " + data.length);
+				if(data.length === 1 ){
+					$chat.append(mHtml[0]);
+					}
 			})
+            //say who has joined
+			socket.on('join message', function(data){
+				console.log(typeof(data));
+				var newuser = '';
+				for (i=0; i<data.length; i++){
+					newuser += data[i];
+				}
+				console.log(newuser);
+				var jhtml = ''
+				jhtml = '<p><b>' + newuser + mHtml[2]//':</b> has joined the chat </p>'
+				$chat.append(jhtml);
+					
+				console.log(data.length);
+				
+			})
+
+			socket.on('disconnect message', function(data){
+					var gone = '';
+					for (i=0; i<data.length; i++){
+					//console.log(data[i]);
+					gone += data[i];
+				} 
+					$chat.append(mHtml[1] );
+			})
+			
+
+
+			
 		});
+
+
 	</script>
 </body>
 </html>
