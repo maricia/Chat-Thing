@@ -73,6 +73,7 @@
 			var $username = $('#username');
 			var $filename = $('#inputFile');
 			var mHtml = ['<p> You are the only Chatter in the chat must wait for other chatters to join </p>','<p>Chatter has left the chat </p>',':</b> has joined the chat </p>'];
+			var $date;
 			
 			//$serverForm.submit(function(e){
 			//	e.preventDefault();
@@ -102,10 +103,13 @@
 
 				
 			})
+			socket.on('date',  function(data){
+				date = data.date;
+			})
 
 			socket.on('new message', function(data){
 				console.log(data);
-				$chat.append('<p><b>'+ data.user+ ':</b> ' + data.msg + '</p>');
+				$chat.append('<p><b>'+date + ':'+ data.user+ ':</b> ' + data.msg + '</p>');
 			})
 
 			$userForm.submit(function(e){
