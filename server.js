@@ -48,7 +48,19 @@ io.on('connection', function(socket){
 		console.log(data);
 
 		io.emit('new message',{msg: data, user: socket.username});
+		
+		setInterval(function(){
+			date = new Date();
+			HR = date.getHours();
+			min = date.getMinutes();
+			date = HR+": "+min;
+			io.emit('date',{'date' : date}  );
+					},1000);
 	});
+
+	
+
+
 
 	//new user
 	socket.on('new users', function(data, callback){
@@ -66,6 +78,8 @@ io.on('connection', function(socket){
 	socket.on('private message', function(from, msg){
 
 	})
+
+
 
 
 	//file transfer
