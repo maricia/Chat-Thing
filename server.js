@@ -7,6 +7,7 @@ var path = require('path');
 var fs = require('fs');
 var users=[];
 var connections = [];
+var date = '';
 
 
 /*
@@ -32,6 +33,7 @@ io.on('connection', function(socket){
 	//push socket into array
 	connections.push(socket);
 	console.log('Something connected: %s', connections.length);
+
 	//log off
 	socket.on('disconnect', function(data){
 		console.log('Who disconnect: %s', users.splice(users.indexOf(socket.username), 1));
@@ -51,18 +53,18 @@ io.on('connection', function(socket){
 		
 		setInterval(function(){
 			date = new Date();
+			timest = date.toTimeString();
 			HR = date.getHours();
 			min = date.getMinutes();
-			date = HR+": "+min;
+			date = HR+':'+min;
+			//console.log(timest);
 			io.emit('date',{'date' : date}  );
 					},1000);
+
 	});
 
-	
 
-
-
-	//new user
+	//new user to client
 	socket.on('new users', function(data, callback){
 		callback(true);
 		socket.username = data;
@@ -75,33 +77,39 @@ io.on('connection', function(socket){
 		logoffusers();
 	});
 
-	socket.on('private message', function(from, msg){
+	socket.on('privateload', function(from, msg){
 
 	})
 
+//create a hidden room for file transer the client needs to join the room to transfer the files
+    socket.join('privateload');
 
-
+    io.to('privateload').emit('you are in my private room');
 
 	//file transfer
 	
-	ss(socket).on('file', function(stream,data){
+	//socket.to('file', function(stream,data){
 		
-		stream.pipe(stream.createWriteStream(stream))
-		var filename = path.basename(data.name);
-		var stream = ss.createStream();
-		fs.createStream(filename).pipe(stream);
-		var file = stream;
-		console.log(file);
-		console.log("send file button clicked");
-		console.log("typeof stream: %s ", typeof(stream) + stream);
-		console.log("typeof data: %s ", typeof(data) + data);
-	});
+		//stream.pipe(stream.createWriteStream(stream))
+		//var filename = path.basename(data.name);
+		//var stream = ss.createStream();
+		//fs.createStream(filename).pipe(stream);
+		//var file = stream;
+		//console.log(file);
+		//console.log("send file button clicked");
+		//console.log("typeof stream: %s ", typeof(stream) + stream);
+		//console.log("typeof data: %s ", typeof(data) + data);
+	//});
 
 
+
+
+ //to clients
    function logoffusers(){
    	 console.log(users);
    	 io.emit('disconnect message', users );
    }
+	//to cleints
 	function updateUsernames(){
 		console.log(users);
 		io.emit('get users', users); 
