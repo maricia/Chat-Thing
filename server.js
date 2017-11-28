@@ -23,8 +23,6 @@ console.log('Server on...');
 
 app.get('/', function(req, res){
 	res.sendFile(__dirname + '/index.html');
-	//var stream = fs.createReadStream(__dirname + '/data.txt');
-	//stream.pipe(res);
 });
 
 //open a connection with socket io, all emits are here - emit- send stuff to client
@@ -42,7 +40,7 @@ io.on('connection', function(socket){
 		console.log('%s sockets connected', connections.length);
 		io.emit('get users', users);
 		logoffusers();
-		
+
 	});
 
 	//send messages
@@ -61,9 +59,10 @@ io.on('connection', function(socket){
 			io.emit('date',{'date' : date}  );
 					},1000);
 
+
+
 	});
-
-
+    
 	//new user to client
 	socket.on('new users', function(data, callback){
 		callback(true);
@@ -77,31 +76,29 @@ io.on('connection', function(socket){
 		logoffusers();
 	});
 
-	socket.on('privateload', function(from, msg){
-
-	})
-
-//create a hidden room for file transer the client needs to join the room to transfer the files
-    socket.join('privateload');
-
-    io.to('privateload').emit('you are in my private room');
-
-	//file transfer
-	
-	//socket.to('file', function(stream,data){
-		
-		//stream.pipe(stream.createWriteStream(stream))
-		//var filename = path.basename(data.name);
-		//var stream = ss.createStream();
-		//fs.createStream(filename).pipe(stream);
-		//var file = stream;
-		//console.log(file);
-		//console.log("send file button clicked");
-		//console.log("typeof stream: %s ", typeof(stream) + stream);
-		//console.log("typeof data: %s ", typeof(data) + data);
-	//});
+    socket.on('room joined',function(data){
+    	console.log(data);
+    	socket.join(data);
+    	io.to(data).emit('room joined', data);
+    });
 
 
+	socket.on('upload file', function(message){
+		var writer = fs.createWriteStream(path.resolve(__dirname, './tmp/' + message.name),{
+			encoding: 'base64'
+		});
+		console.log(writer);
+		writer.write(message.data);
+		writer.end();
+
+		writer.on('finish',function(){
+			socket.emit('file uploaded', {
+				name: '/tmp/' + message.name
+			});
+		});
+	});
+
+   
 
 
  //to clients

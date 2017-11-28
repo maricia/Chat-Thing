@@ -8,9 +8,10 @@
   },
   "author": "Maricia Alleman",
   "license": "ISC",
-  "dependencies":{
-  	"socket.io":"*",
-  	"express":"*",
+  "dependencies": {
+    "express": "*",
+    "simple-peer": "^8.1.1",
+    "socket.io": "*",
     "socket.io-stream": "*"
   }
 }
