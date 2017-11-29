@@ -46,11 +46,8 @@
 						<br />
 						<button type="submit" class="btn btn-success" value="Send" >Send <span class="glyphicon glyphicon-send"></span></button>
 						<div class="form-group">
-						<input class="form-control" id="roomname" placeholder="Enter Private Chat Room Name"/>
-						<button id="privatechat" class="btn btn-primary"> Private Chat </button>
-						<ul id="messages"></ul>
 					    <input type="file" id="inputFile" />
-					    <button type="button" class="btn btn-primary" value="sendFile" id="sendFile" >send File </button>
+					    <button type="button" class="btn btn-primary" value="sendFile" id="sendFile" nwworkingdir="./tmp/">send File </button>
 					  	</div>
 						
 					</div>
@@ -75,14 +72,6 @@
 			var $privateroom = $('#roomname');
 
 
-						
-			
-			//$serverForm.submit(function(e){
-			//	e.preventDefault();
-			//	port = $startserver.val();
-
-			//});
-
             
 			$messageForm.submit(function(e){
 				e.preventDefault();
@@ -91,7 +80,6 @@
 				$message.val('');
 
 			});
-
 
 
 			$('#sendFile').click(function(){
@@ -132,7 +120,7 @@
 				var firstFile = file;
 				var reader = new FileReader();
 				reader.onloadend = function(){
-					socket.emit('upload file',{
+						socket.emit('upload file',{
 						name: firstFile.name,
 						data: reader.result
 					});
@@ -142,16 +130,20 @@
 			}
 
 			socket.on('file uploaded', function(message){
-				var list  = document.list;
-				//var img = document.createElement('img');
-				var list = document.createElement('li');
-				list = document.createTextNode(message.name);
-				//img.setAttribute('src',message.name);
-				//img.setAttribute('height','100px');
-				//document.body.appendChild(img);
-				document.body.appendChild(list);
-			});	
 
+				if (confirm("save file " + message.name) == true){
+					var list  = document.list;
+					var list = document.createElement('li');
+					list = document.createTextNode(message.name);
+					document.body.appendChild(list);
+
+				}else {
+					console.log('now what')
+				}
+
+				
+			});	
+			
 
 			//from server
 			socket.on('date',  function(data){
@@ -212,13 +204,7 @@
 					$chat.append(mHtml[1] );
 			})
 			
-
-
-
-
-			
 		});
-
 
 	</script>
 </body>

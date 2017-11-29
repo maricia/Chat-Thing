@@ -1,3 +1,5 @@
+
+
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -5,6 +7,8 @@ var io = require('socket.io').listen(server);
 var ss = require('socket.io-stream');
 var path = require('path');
 var fs = require('fs');
+
+
 var users=[];
 var connections = [];
 var date = '';
@@ -84,6 +88,7 @@ io.on('connection', function(socket){
 
 
 	socket.on('upload file', function(message){
+		
 		var writer = fs.createWriteStream(path.resolve(__dirname, './tmp/' + message.name),{
 			encoding: 'base64'
 		});
@@ -92,10 +97,16 @@ io.on('connection', function(socket){
 		writer.end();
 
 		writer.on('finish',function(){
-			socket.emit('file uploaded', {
-				name: '/tmp/' + message.name
+			socket.broadcast.emit('file uploaded', {
+				name: '/tmp/' + message.name,
+				files: message.data
 			});
+		
+
+
 		});
+		
+
 	});
 
    
