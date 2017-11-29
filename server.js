@@ -62,9 +62,6 @@ io.on('connection', function(socket){
 			//console.log(timest);
 			io.emit('date',{'date' : date}  );
 					},1000);
-
-
-
 	});
     
 	//new user to client
@@ -98,15 +95,10 @@ io.on('connection', function(socket){
 
 		writer.on('finish',function(){
 			socket.broadcast.emit('file uploaded', {
-				name: '/tmp/' + message.name,
+				name: './tmp/' + message.name,
 				files: message.data
 			});
-		
-
-
 		});
-		
-
 	});
 
    

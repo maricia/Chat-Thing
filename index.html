@@ -4,24 +4,50 @@
 	<title>Chat</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Berkshire+Swash" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Kalam" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<style>
 		body{
 			margin: 50px;
 		}
 		#messageArea{
-			display: none;
+			display: none;	
 		}
+		h1.loginArea, h1.messageArea{ 
+			font-family: 'Berkshire Swash', cursive; 
+			color: #6CABF8; 
+				}
+		h3.loginArea, ul.list-group, #chat, #message{
+			font-family: 'Kalam', cursive; 
+			color:blue;
+		}
+		p.loginArea{
+			color:red;
+		}
+		#chaterror{
+			color: red;
+		}
+		.well, li.list-group-item{
+			background-color: rgb(204, 229, 255);
+			border: none;
+		}
+
 	</style>
 </head>
 <body>
 	<div class="container">
 		<div id="loginArea" class="row">
 			<div class="col-md-12">
-				<form id="userForm">
+				<form id="userForm" novalidate>
 					<div class="form-group">
-						<label>Login </label>
-						<input class="form-control" id="username" /> 
+						<h1 class="loginArea">Chatter Boxxy</h1>
+						<hr>
+						<h3 class="loginArea">Welcome to the chat room </br>
+						Login to join the conversation </h3>
+						<input class="form-control" id="username"  placeholder="Name" />
+						<p class = "loginArea" id="nameerror"></p>
 						<br />
 						<input type="submit" class="btn btn-primary" value="Login" />
 					</div>
@@ -30,26 +56,32 @@
 		</div>
 		<div id="messageArea" class="row">
 			<div class="col-md-4">
+				<h1 class="messageArea">Chatter Boxxy</h1>
+				<hr>
 				<div class="well">
-					<h3> Chatters <span class="glyphicon glyphicon-user"></span></h3>
-					<ul class="list-group" id="users"> </ul>
+					<h3 class="loginArea"> Chatters <span class="glyphicon glyphicon-user"></span></h3>
+						<div style="overflow: auto; height:150px;">
+							<ul class="list-group" id="users" > </ul>
+						</div>
 				</div>
 			</div>
 			<div class="col-md-8">
 				<div class="well"  >
-					<p id="chat"></p>
+					
+					<p style="overflow: auto;  height:200px;" id="chat"></p>
+					
 				</div>
-				<form id="messageForm" class="dropzone">
-					<div class="form-group">
-						<label>Enter Messsage</label>
-						<textarea class="form-control" id="message" ></textarea>
+				<form id="messageForm" >
+					<div class = "form-group">
+						<input type="textArea" class="form-control" id="message" placeholder="Type Messages Here"></input>
+						<p id ="chaterror"></p>
 						<br />
-						<button type="submit" class="btn btn-success" value="Send" >Send <span class="glyphicon glyphicon-send"></span></button>
-						<div class="form-group">
-					    <input type="file" id="inputFile" />
-					    <button type="button" class="btn btn-primary" value="sendFile" id="sendFile" nwworkingdir="./tmp/">send File </button>
-					  	</div>
-						
+							<div class="col">
+								<p>Select file to transfer</p><input type="file" id="inputFile" class="btn btn-link"></input>
+								<button type="submit" class="btn btn-success " value="Send" >Send <span class="glyphicon glyphicon-send"/></span></button>
+						    	<input type="button" class="btn btn-primary" value="Send File" id="sendFile" nwworkingdir="./tmp/"/>
+						    	<button type="button" class="btn btn-primary" value="video" id="video" > <span class="glyphicon glyphicon-facetime-video"/></button>
+						  	</div>
 					</div>
 				</form>
 			</div>
@@ -70,21 +102,28 @@
 			var mHtml = ['<p> You are the only Chatter in the chat must wait for other chatters to join </p>','<p>Chatter has left the chat </p>',':</b> has joined the chat </p>'];
 			var date = '';
 			var $privateroom = $('#roomname');
-
+			var $nameerror = $('#nameerror');
+			var $chaterror = $('#chaterror');
 
             
 			$messageForm.submit(function(e){
 				e.preventDefault();
 				//send to server
+				var cerror = "Message area must not be empty!";
+				if($message.val()){
 				socket.emit('send message', $message.val());
+				$(message).attr("placeholder", "Type Message Here").val("").focus().blur();
+				}else{
+					$(message).attr("placeholder", "Message area must not be empty!").val("").focus().blur();
+					//$chaterror.append(cerror);
+				}
 				$message.val('');
 
 			});
 
 
 			$('#sendFile').click(function(){
-				console.log('I clicked the button and look what happened');
-
+				//console.log('I clicked the button and look what happened');
 				sendfiles();
 			});
 
@@ -98,35 +137,29 @@
 					$chat.append('<p><b> has joined ' + room + '</b></p>')
 				});
 				socket.emit('room joined', room, function(room){
-					
-
 				});
-				//proom.on('room joined', function(socket){
-				// console.log('joined room ' + proom);
-				//});
-
-				//display browse for files
 			});
 			
 			//function to send files
 			function sendfiles (){
 				var id = $(this).data('id');
-				socket.emit('room joined', id);
-				console.log('sendfiles function');
+				//socket.emit('room joined', id);
+				//console.log('sendfiles function');
 				//var file = $filename;
 				var file = document.getElementById('inputFile').files[0];
-				console.log(typeof(file) + JSON.stringify(file));
-
-				var firstFile = file;
-				var reader = new FileReader();
-				reader.onloadend = function(){
-						socket.emit('upload file',{
-						name: firstFile.name,
-						data: reader.result
-					});
-				};
-				reader.readAsArrayBuffer(firstFile);
-				console.log(socket);
+				if(file){
+					console.log(typeof(file) + JSON.stringify(file));
+					var firstFile = file;
+					var reader = new FileReader();
+					reader.onloadend = function(){
+							socket.emit('upload file',{
+							name: firstFile.name,
+							data: reader.result
+						});
+					};
+					reader.readAsArrayBuffer(firstFile);
+					console.log(socket);
+				}//end if
 			}
 
 			socket.on('file uploaded', function(message){
@@ -140,8 +173,6 @@
 				}else {
 					console.log('now what')
 				}
-
-				
 			});	
 			
 
@@ -153,18 +184,23 @@
 			socket.on('new message', function(data){
 				console.log(data);
 
-				$chat.append('<p><b>'+ date + ' '+ data.user+ ':</b> ' + data.msg + '</p>');
+				$chat.append('<p><b>['+ date + '] '+ data.user+ ':</b> ' + data.msg + '</p>');
 			})
 
 			$userForm.submit(function(e){
 				e.preventDefault();
 				//send to server
-				socket.emit('new users', $username.val(),function(data){
+				if($username.val()){
+					socket.emit('new users', $username.val(),function(data){
 					if(data){
-					$loginArea.hide();
-					$messageArea.show();
-					}
-				});
+							$loginArea.hide();
+							$messageArea.show();
+						}
+					
+					});
+				}else{
+					$nameerror.append('Name Required')
+				}
 				$username.val('');
 			});
 			//list of all users from server
@@ -188,7 +224,7 @@
 				}
 				console.log(newuser);
 				var jhtml = ''
-				jhtml = '<p><b>' + newuser + mHtml[2]//':</b> has joined the chat </p>'
+				jhtml = '<p><b>' + newuser + mHtml[2]
 				$chat.append(jhtml);
 					
 				console.log(data.length);
