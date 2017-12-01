@@ -7,11 +7,11 @@ var io = require('socket.io').listen(server);
 var ss = require('socket.io-stream');
 var path = require('path');
 var fs = require('fs');
+var dateformat = require('dateformat');
 
 
 var users=[];
 var connections = [];
-var date = '';
 
 
 /*
@@ -49,21 +49,12 @@ io.on('connection', function(socket){
 
 	//send messages
 	socket.on('send message', function(data){
-		console.log(data);
-
-		io.emit('new message',{msg: data, user: socket.username});
+		var now = new Date();
+		now = dateformat(now, 'mediumTime');
+		console.log(now);
+		io.emit('new message',{msg: data, user: socket.username, time: now});
 		
-		setInterval(function(){
-			date = new Date();
-			timest = date.toTimeString();
-			HR = date.getHours();
-			min = date.getMinutes();
-			date = HR+':'+min;
-			//console.log(timest);
-			io.emit('date',{'date' : date}  );
-					},1000);
-	});
-    
+    });
 	//new user to client
 	socket.on('new users', function(data, callback){
 		callback(true);
@@ -77,10 +68,10 @@ io.on('connection', function(socket){
 		logoffusers();
 	});
 
-    socket.on('room joined',function(data){
-    	console.log(data);
-    	socket.join(data);
-    	io.to(data).emit('room joined', data);
+    socket.on('subscribe',function(room){
+    	console.log('room joined ' + room);
+    	socket.join(room);
+    	socket.broadcast.to(room).emit('private message', socket.username);
     });
 
 
@@ -94,14 +85,23 @@ io.on('connection', function(socket){
 		writer.end();
 
 		writer.on('finish',function(){
-			socket.broadcast.emit('file uploaded', {
+			socket.broadcast.to('roomId').emit('file uploaded', {
 				name: './tmp/' + message.name,
 				files: message.data
 			});
 		});
 	});
 
-   
+   socket.on('send private message', function(data){
+   	console.log('sending room post', data.room);
+   	console.log()
+   	var chatters ={};
+   	chatters[data] = socket.id;
+   	console.log(chatters[0]);
+   	socket.broadcast.to(data.room).emit('private stuff', {
+   		message: data.message
+   	});
+   });
 
 
  //to clients
@@ -116,7 +116,5 @@ io.on('connection', function(socket){
 		io.emit('join message', socket.username);
 		console.log(socket.username);
 	}
-
-
 
 });

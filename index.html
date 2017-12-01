@@ -23,8 +23,8 @@
 			font-family: 'Kalam', cursive; 
 			color:blue;
 		}
-		p.loginArea{
-			color:red;
+		p.loginArea {
+			color: red;
 		}
 		#chaterror{
 			color: red;
@@ -60,15 +60,15 @@
 				<hr>
 				<div class="well">
 					<h3 class="loginArea"> Chatters <span class="glyphicon glyphicon-user"></span></h3>
-						<div style="overflow: auto; height:150px;">
+						<div style="overflow: auto; height:100px;">
 							<ul class="list-group" id="users" > </ul>
 						</div>
 				</div>
 			</div>
 			<div class="col-md-8">
-				<div class="well"  >
+				<div class="well">
 					
-					<p style="overflow: auto;  height:200px;" id="chat"></p>
+					<p style="overflow: auto;  height:200px;" id="chat" class="chat"></p>
 					
 				</div>
 				<form id="messageForm" >
@@ -77,10 +77,13 @@
 						<p id ="chaterror"></p>
 						<br />
 							<div class="col">
-								<p>Select file to transfer</p><input type="file" id="inputFile" class="btn btn-link"></input>
+								<p>Select file to transfer</p><input type="file" id="inputFile" class="btn btn-link" disabled="true"></input>
+								
 								<button type="submit" class="btn btn-success " value="Send" >Send <span class="glyphicon glyphicon-send"/></span></button>
-						    	<input type="button" class="btn btn-primary" value="Send File" id="sendFile" nwworkingdir="./tmp/"/>
-						    	<button type="button" class="btn btn-primary" value="video" id="video" > <span class="glyphicon glyphicon-facetime-video"/></button>
+								<button type="button" class="btn btn-primary" id="privatechat" value="Go Private"> Go Private</button>
+						    	<input type="button" class="btn btn-primary" value="Send File" id="sendFile" disabled="true" nwworkingdir="./tmp/"/>
+						    	<button type="button" class="btn btn-primary" value="video" id="video" disabled="true"> <span class="glyphicon glyphicon-facetime-video"/></button>
+						    	
 						  	</div>
 					</div>
 				</form>
@@ -100,7 +103,6 @@
 			var $username = $('#username');
 			var $filename = $('#inputFile');
 			var mHtml = ['<p> You are the only Chatter in the chat must wait for other chatters to join </p>','<p>Chatter has left the chat </p>',':</b> has joined the chat </p>'];
-			var date = '';
 			var $privateroom = $('#roomname');
 			var $nameerror = $('#nameerror');
 			var $chaterror = $('#chaterror');
@@ -120,25 +122,31 @@
 				$message.val('');
 
 			});
-
+			
 
 			$('#sendFile').click(function(){
 				//console.log('I clicked the button and look what happened');
+				
 				sendfiles();
 			});
 
-			$('#privatechat').click(function(){
-                var room = $privateroom.val();
-                $privateroom.val('');
-                console.log(room);
+			$('#privatechat').click(function(){               
+                var room = 'roomId'
+                document.getElementById('sendFile').disabled = false;
+                document.getElementById('inputFile').disabled = false;
+                //
 				//to server
-				socket.emit('send message', room, function(data){
-					data = room;
-					$chat.append('<p><b> has joined ' + room + '</b></p>')
-				});
-				socket.emit('room joined', room, function(room){
-				});
+				console.log(room);
+				socket.emit('subscribe', room);
+
 			});
+			//from server to private room
+			socket.on('private stuff', function(data){
+				console.log(data);
+				//enable browse button
+				//enable sendfile button
+
+			})
 			
 			//function to send files
 			function sendfiles (){
@@ -175,16 +183,10 @@
 				}
 			});	
 			
-
-			//from server
-			socket.on('date',  function(data){
-				date = data.date;
-			})
 			//from server
 			socket.on('new message', function(data){
 				console.log(data);
-
-				$chat.append('<p><b>['+ date + '] '+ data.user+ ':</b> ' + data.msg + '</p>');
+				$chat.append('<p><span style="color:gray"><b>['+ data.time + '] </b></span>'+ data.user+ ': ' + data.msg + '</p>');
 			})
 
 			$userForm.submit(function(e){
@@ -196,7 +198,6 @@
 							$loginArea.hide();
 							$messageArea.show();
 						}
-					
 					});
 				}else{
 					$nameerror.append('Name Required')
@@ -207,7 +208,7 @@
 			socket.on('get users', function(data){
 				var html = ''
 				for(i=0; i<data.length; i++){
-					html += '<li class="list-group-item">' + data[i] +'</li>';
+					html += '<li >' + data[i] +'</li>';
 				}
 				$users.html(html);
 				console.log(typeof(data) +" " + data.length);
@@ -238,6 +239,12 @@
 					gone += data[i];
 				} 
 					$chat.append(mHtml[1] );
+			})
+
+			socket.on('private message', function(data){
+				console.log('here private Message');
+				console.log(typeof(data));
+				$chat.append(data + ' sent a private message');
 			})
 			
 		});
