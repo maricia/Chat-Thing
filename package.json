@@ -13,5 +13,6 @@
     "simple-peer": "^8.1.1",
     "socket.io": "*",
     "socket.io-stream": "*"
+	"dateformat":"*"
   }
 }
